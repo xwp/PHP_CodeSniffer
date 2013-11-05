@@ -22,6 +22,18 @@ if (is_file(dirname(__FILE__).'/../CodeSniffer/CLI.php') === true) {
     include_once 'PHP/CodeSniffer/CLI.php';
 }
 
+define('PHP_CODESNIFFER_SVNLOOK', '/usr/bin/svnlook');
+
+/**
+ * Installation instructions for SVN
+ * Add the following line to your repofolder/hooks/pre-commit on the svn server
+ * /path/to/PHPCS/scripts/phpcs-patch "$1" -t "$2" --standard=WordPress >&2 || exit 1
+ *
+ * Installation instructions for GIT
+ * You can just symlink the file to repofolder/hooks/pre-commit
+ * cd /path/to/repofolder/.git/hooks && ln -s /path/to/PHPCS/scripts/phpcs-patch pre-commit
+ */
+
 /**
  * A class to process command line options.
  *
@@ -105,7 +117,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             $values['vcsType'] = 'svn';
         }
         else {
-            $values['vcsArgs'][] = escapeshellarg($arg);
+            $values['vcsArgs'][] = $arg;
         }
         return $values;
 
@@ -124,6 +136,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         if (empty($values) === true) {
             $values = parent::getCommandLineValues();
         }
+
 
         $this->repo_root  = trim( $this->executeCommand( 'pwd' ) );
 
@@ -145,11 +158,11 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
 
             // @todo We need to set the -t or the -r arguments?
             // Get list of files in this transaction or changeset
-            $contents = $this->executeCommand( sprintf(
+            $command = sprintf(
                 'svnlook changed %s',
-                implode(' ', array_map('escapeshellarg', $values['vcsArgs']))
-                ) );
-
+                implode(' ', $values['vcsArgs'])
+                );
+            $contents = $this->executeCommand( $command );
         }
         else {
             printf( 'Unknown VCS of type "%s".' . PHP_EOL, $values['vcsType'] );
@@ -171,6 +184,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             }
             $paths[] = trim( preg_replace( $pattern, '', $line) );
         }
+
 
         $values['standard'] = $this->validateStandard($values['standard']);
         if (PHP_CodeSniffer::isInstalledStandard($values['standard']) === false) {
@@ -238,6 +252,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
                 $contents = $this->executeCommand( $command );
             }
 
+
             $phpcs->processFile( $path, $contents );
 
         }//end foreach
@@ -267,7 +282,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             $command = sprintf( 'cd %s && git diff -U0 --staged', $this->repo_root );
         }
         elseif ( $vcs == 'svn' ) {
-            // $command = ?
+            $command = sprintf( 'cd %s && svn diff --no-diff-deleted --diff-cmd diff -x -U0', $this->repo_root );
         }
 
         $diffs = $this->executeCommand( $command, true );
@@ -277,8 +292,13 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
 
         $scope = 0;
         $scope_start = 0;
+        // printf(var_export($diffs)); #debug
         foreach ( $diffs as $i => $line ) {
-            if ( preg_match( '#diff --git a/(\S+)#', $line, $matches ) ) {
+            if ( $vcs == 'git' && preg_match( '#diff --git a/(\S+)#', $line, $matches ) ) {
+                $file = $matches[1];
+                $files[$file] = array();
+            }
+            if ( $vcs == 'svn' && preg_match( '#^\+\+\+ (\S+)#', $line, $matches ) ) {
                 $file = $matches[1];
                 $files[$file] = array();
             }
@@ -290,6 +310,9 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             elseif ( preg_match( '#^\+[^\+]#', $line ) ) {
                 $files[$file][] = $scope_start + ( $i - $scope - 1 );
                 $scope_start += 1;
+                continue;
+            }
+            elseif ( preg_match( '#\ No newline at end of file"#', $line ) ) {
                 continue;
             }
             $scope_start -= 1;
@@ -356,6 +379,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         $reporting       = new PHP_CodeSniffer_Reporting();
         $filesViolations = $phpcs->getFilesErrors();
 
+        // printf(var_export($filesViolations)); # debug
         $changed_lines = $this->process_diff();
         foreach ( $filesViolations as $file => $issues ) {
             foreach ( array( 'warnings', 'errors' ) as $type ) {
@@ -371,6 +395,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
                 $count = 0;
             }
         }
+        // printf(var_export($filesViolations)); exit(1); # debug
 
         if (empty($reports) === true) {
             $reports['full'] = $reportFile;
