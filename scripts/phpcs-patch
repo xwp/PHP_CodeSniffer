@@ -292,7 +292,6 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
 
         $scope = 0;
         $scope_start = 0;
-        // printf(var_export($diffs)); #debug
         foreach ( $diffs as $i => $line ) {
             if ( $vcs == 'git' && preg_match( '#diff --git a/(\S+)#', $line, $matches ) ) {
                 $file = $matches[1];
@@ -379,7 +378,6 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         $reporting       = new PHP_CodeSniffer_Reporting();
         $filesViolations = $phpcs->getFilesErrors();
 
-        // printf(var_export($filesViolations)); # debug
         $changed_lines = $this->process_diff();
         foreach ( $filesViolations as $file => $issues ) {
             foreach ( array( 'warnings', 'errors' ) as $type ) {
@@ -395,7 +393,6 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
                 $count = 0;
             }
         }
-        // printf(var_export($filesViolations)); exit(1); # debug
 
         if (empty($reports) === true) {
             $reports['full'] = $reportFile;
