@@ -32,6 +32,11 @@ define('PHP_CODESNIFFER_SVNLOOK', '/usr/bin/svnlook');
  * Installation instructions for GIT
  * You can just symlink the file to repofolder/hooks/pre-commit
  * cd /path/to/repofolder/.git/hooks && ln -s /path/to/PHPCS/scripts/phpcs-patch pre-commit
+ *
+ * Usage of this as a standalone check
+ * For SVN:
+ * /path/to/phpcs-patch --standard=WordPress /path/to/working/dir -r 21 --local
+ * /path/to/phpcs-patch --standard=WordPress /path/to/working/dir -c 21 --local
  */
 
 /**
@@ -90,6 +95,8 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         }
 
         $defaults['vcsArgs'] = array();
+        $defaults['noHook'] = false; // Defaults to YES, I'M A HOOK
+
         //$defaults['staged'] = true;
         return $defaults;
 
@@ -116,6 +123,9 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         else if ( $arg === '--svn' ) {
             $values['vcsType'] = 'svn';
         }
+        else if ( $arg == '--local' ) {
+            $values['noHook'] = true;
+        }
         else {
             $values['vcsArgs'][] = $arg;
         }
@@ -137,7 +147,6 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             $values = parent::getCommandLineValues();
         }
 
-
         $this->repo_root  = trim( $this->executeCommand( 'pwd' ) );
 
         $paths = array();
@@ -147,21 +156,42 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             exit(1);
         }
 
+        // 1. Get changed files
+        // --------------------
+        
         if ($values['vcsType'] === 'git') {
             // Access objects in the current index (staged but not yet commited).
             $contents = $this->executeCommand( 'git diff --name-status --staged' );
         }
         else if ($values['vcsType'] === 'svn') {
-            // If supplied a transaction, use svnlook
-            // If supplied a revision range, use svnlook to get last revision, but obtain diff with first rev to decide what to include in the report
-            // "If no revision or transaction is specified, svnlook defaults to the youngest (most recent) revision of the repository."
-
-            // @todo We need to set the -t or the -r arguments?
-            // Get list of files in this transaction or changeset
-            $command = sprintf(
-                'svnlook changed %s',
-                implode(' ', $values['vcsArgs'])
+            // If supplied a transaction, or running on server, use svnlook, to handle svn:pre-commit ( on svn server )
+            if ( in_array( '-t', $values['vcsArgs'] ) || ! $values['noHook'] ) {
+                $command = sprintf(
+                    'svnlook changed %s',
+                    implode(' ', $values['vcsArgs'])
                 );
+            }
+            // else, use svn diff, to handle local execution
+            else {
+                $args = array_splice( $values['vcsArgs'], 1 );
+                if ( 
+                    false !== ( $_r = array_search( '-r', $args ) ) 
+                    && 
+                    strpos( $args[$_r+1], ':' ) === false
+                    ) {
+                    $args[$_r+1] = $args[$_r+1] . ':HEAD';
+                }
+                elseif ( false === ( $_r = array_search( '-r', $args ) )  ) {
+                    $args[] = '-r';
+                    $info = preg_match('#Revision: (\d+)#', `svn info -r 'HEAD' | grep 'Revision: '`, $matches ) ? $matches[1] : null;
+                    $args[] = $info*1-1 . ':' . 'HEAD';
+                }
+                $command = sprintf(
+                    'svn diff %s --summarize',
+                    implode( ' ', $args )                    
+                    );
+                
+            }
             $contents = $this->executeCommand( $command );
         }
         else {
@@ -182,9 +212,17 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             elseif ( $values['vcsType'] == 'svn' ) {
                 $pattern = '/^.{4}/';
             }
-            $paths[] = trim( preg_replace( $pattern, '', $line) );
+            $paths[] = trim( 
+                preg_replace( 
+                    $pattern, 
+                    '', 
+                    str_replace(
+                        $this->repo_root.'/', 
+                        '', 
+                        $line)
+                    )
+                );
         }
-
 
         $values['standard'] = $this->validateStandard($values['standard']);
         if (PHP_CodeSniffer::isInstalledStandard($values['standard']) === false) {
@@ -194,9 +232,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             $this->printInstalledStandards();
             exit(2);
         }
-
-        // print_r($values);
-
+ 
         $phpcs = new PHP_CodeSniffer(
             $values['verbosity'],
             $values['tabWidth'],
@@ -231,6 +267,9 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         $phpcs->setCli($this);
         $phpcs->process(array(), $values['standard'], $values['sniffs']);
 
+        // 2. Get content of each changed file
+        // -----------------------------------
+        
         foreach ($paths as $path) {
             // No need to process folders as each changed file is checked.
             if (substr($path, -1) === '/') {
@@ -243,15 +282,50 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
                 continue;
             }
 
+
             if ( $values['vcsType'] == 'git' ) {
+                // TODO: get file from a certain revision, fallback to HEAD if not provided
                 $contents = $this->executeCommand( sprintf( 'cat %s/%s', $this->repo_root, $path ) );
             }
             elseif ( $values['vcsType'] == 'svn' ) {
-                // Get the contents of each file, as it would be after this transaction.
-                $command = PHP_CODESNIFFER_SVNLOOK.' cat '.implode(' ', $values['vcsArgs']).' '.escapeshellarg($path);
-                $contents = $this->executeCommand( $command );
+                // Transactions happen on svn server, not local 
+                if ( ! $values['noHook'] ) {
+                    // Get the contents of each file, as it would be after this transaction.
+                    $command = sprintf(
+                        PHP_CODESNIFFER_SVNLOOK . ' cat %s %s',
+                        implode(' ', $values['vcsArgs']),
+                        $path
+                        );
+                    $contents = $this->executeCommand( $command );
+                }
+                else { // locally invoked
+                    // We're cd'ing to the dir anyway, no need to pass the directory
+                    $args = array_splice( $values['vcsArgs'], 1 );
+                    if ( 
+                        false !== ( $_r = array_search( '-r', $args ) ) 
+                        && 
+                        strpos( $args[$_r+1], ':' ) !== false
+                        ) {
+                        $args[$_r+1] = preg_match( '#(.*):#', $args[$_r+1], $matches ) ? $matches[1] : null;
+                    }
+                    // If no -r is passed, check the HEAD~1 revision
+                    elseif ( false === ( $_r = array_search( '-r', $args ) )  ) {
+                        $args[] = '-r';
+                        $info = preg_match('#Revision: (\d+)#', `cd {$this->repo_root} && svn info -r 'HEAD' | grep 'Revision: '`, $matches ) ? $matches[1] : null;
+                        $args[] = $info*1-1;
+                    }
+                    // We need the file at that certain revision, -c here doesn't fit, replace with -r
+                    $args = str_replace( '-c', '-r', implode( ' ', $args ) );
+                    $command = sprintf(
+                        'cd %s && svn cat %s %s',
+                        $this->repo_root,
+                        $args,
+                        str_replace($this->repo_root.'/', '', $path)
+                        );
+                        // printf(var_export($command));die(1);
+                    $contents = $this->executeCommand( $command );
+                }
             }
-
 
             $phpcs->processFile( $path, $contents );
 
@@ -282,7 +356,17 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             $command = sprintf( 'cd %s && git diff -U0 --staged', $this->repo_root );
         }
         elseif ( $vcs == 'svn' ) {
-            $command = sprintf( 'cd %s && svn diff --no-diff-deleted --diff-cmd diff -x -U0', $this->repo_root );
+            $args = array_splice( $values['vcsArgs'], 1 );
+            // remove transaction info from args, svn diff doesn't like it, and it is not needed anyway
+            if ( false !== ( $_t = array_search( '-t', $args ) ) ) {
+                unset($args[$_t]);
+                unset($args[$_t+1]);
+            }
+            $command = sprintf( 
+                'cd %s && svn diff %s --no-diff-deleted --diff-cmd diff -x -U0', 
+                $this->repo_root,
+                implode( ' ', $args )
+                );
         }
 
         $diffs = $this->executeCommand( $command, true );
@@ -298,7 +382,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
                 $files[$file] = array();
             }
             if ( $vcs == 'svn' && preg_match( '#^\+\+\+ (\S+)#', $line, $matches ) ) {
-                $file = $matches[1];
+                $file = str_replace( $this->repo_root . '/', '', $matches[1] );
                 $files[$file] = array();
             }
             elseif ( preg_match( '#^@@#', $line ) ) {
