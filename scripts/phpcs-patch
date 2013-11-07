@@ -100,7 +100,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         }
 
         $defaults['vcsArgs'] = array();
-        $defaults['noHook'] = false; // Defaults to YES, I'M A HOOK
+        $defaults['direct-call'] = false; // Defaults to NO, I'M A HOOK
 
         //$defaults['staged'] = true;
         return $defaults;
@@ -129,7 +129,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             $values['vcsType'] = 'svn';
         }
         else if ( $arg == '--local' ) {
-            $values['noHook'] = true;
+            $values['direct-call'] = true;
         }
         else {
             $values['vcsArgs'][] = $arg;
@@ -179,7 +179,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         }
         else if ($values['vcsType'] === 'svn') {
             // If supplied a transaction, or running on server, use svnlook, to handle svn:pre-commit ( on svn server )
-            if ( in_array( '-t', $values['vcsArgs'] ) || ! $values['noHook'] ) {
+            if ( in_array( '-t', $values['vcsArgs'] ) || ! $values['direct-call'] ) {
                 $command = sprintf(
                     'svnlook changed %s',
                     implode(' ', $values['vcsArgs'])
@@ -314,7 +314,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             }
             elseif ( $values['vcsType'] == 'svn' ) {
                 // Transactions happen on svn server, not local 
-                if ( ! $values['noHook'] ) {
+                if ( ! $values['direct-call'] ) {
                     // Get the contents of each file, as it would be after this transaction.
                     $command = sprintf(
                         PHP_CODESNIFFER_SVNLOOK . ' cat %s %s',
