@@ -37,6 +37,10 @@ define('PHP_CODESNIFFER_SVNLOOK', '/usr/bin/svnlook');
  * For SVN:
  * /path/to/phpcs-patch --standard=WordPress /path/to/working/dir -r 21 --local
  * /path/to/phpcs-patch --standard=WordPress /path/to/working/dir -c 21 --local
+ *
+ * For GIT:
+ * /path/to/phpcs-patch --standard=WordPress /path/to/working/dir -r HEAD^
+ * /path/to/phpcs-patch --standard=WordPress /path/to/working/dir -r foobar:HEAD^
  */
 
 /**
@@ -47,6 +51,7 @@ define('PHP_CODESNIFFER_SVNLOOK', '/usr/bin/svnlook');
  * @author    Jack Bates <ms419@freezone.co.uk>
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Weston Ruter <weston@x-team.com>
+ * @author    Shady Sharaf <shady@x-team.com>
  * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600), X-Company Pty Ltd
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @version   Release: @package_version@
@@ -161,7 +166,16 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         
         if ($values['vcsType'] === 'git') {
             // Access objects in the current index (staged but not yet commited).
-            $contents = $this->executeCommand( 'git diff --name-status --staged' );
+            // Do we have a commit [range] ?
+            $args = $values['vcsArgs'];
+            $rev = '--staged';
+            if ( false !== ( $_r = array_search( '-r', $args ) ) ) {
+                $rev = str_replace( ':', ' ', $args[$_r+1] );
+            }
+            $contents = $this->executeCommand( sprintf(
+                'git diff --name-status %s',
+                $rev
+                ) );
         }
         else if ($values['vcsType'] === 'svn') {
             // If supplied a transaction, or running on server, use svnlook, to handle svn:pre-commit ( on svn server )
@@ -284,8 +298,19 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
 
 
             if ( $values['vcsType'] == 'git' ) {
-                // TODO: get file from a certain revision, fallback to HEAD if not provided
-                $contents = $this->executeCommand( sprintf( 'cat %s/%s', $this->repo_root, $path ) );
+                // Get file from a certain revision, fallback to STAGED if not provided
+                $args = $values['vcsArgs'];
+                $rev = ''; // Fallback to current staged file
+                if ( false !== ( $_r = array_search( '-r', $args ) ) ) {
+                    $rev = str_replace( ':', ' ', $args[$_r+1] );
+                }
+                $command = sprintf( 
+                    'cd %s && git show %s:%s',
+                    $this->repo_root, 
+                    $rev, // Empty rev means staged file
+                    $path
+                    );
+                $contents = $this->executeCommand( $command );
             }
             elseif ( $values['vcsType'] == 'svn' ) {
                 // Transactions happen on svn server, not local 
@@ -322,7 +347,6 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
                         $args,
                         str_replace($this->repo_root.'/', '', $path)
                         );
-                        // printf(var_export($command));die(1);
                     $contents = $this->executeCommand( $command );
                 }
             }
@@ -353,7 +377,21 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         $vcs = $values['vcsType'];
 
         if ( $vcs == 'git' ) {
-            $command = sprintf( 'cd %s && git diff -U0 --staged', $this->repo_root );
+            $args = $values['vcsArgs'];
+            // Check staged files if no revision is passed
+            $rev = '--staged';
+            if ( false !== ( $_r = array_search( '-r', $args ) ) ) {
+                $rev = $args[$_r+1];
+                if ( false !== strpos( $rev, ':' ) ) {
+                    $rev = str_replace(':', ' ', $rev);
+                }
+                $rev = $rev . ' --';
+            }
+            $command = sprintf(
+                'cd %s && git diff -U0 %s',
+                $this->repo_root,
+                $rev
+                );
         }
         elseif ( $vcs == 'svn' ) {
             $args = array_splice( $values['vcsArgs'], 1 );
