@@ -70,7 +70,13 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
      * Repository root, used with git
      * @var array
      */
-    public $repo_root = array();
+    public $repo_root = '';
+
+    /**
+     * Enable debug messages
+     * @var boolean
+     */
+    public $debug = true;
 
     /**
      * Get a list of default values for all possible command line arguments.
@@ -152,7 +158,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             $values = parent::getCommandLineValues();
         }
 
-        $this->repo_root  = trim( $this->executeCommand( 'pwd' ) );
+        $this->repo_root  = trim( `pwd` );
 
         $paths = array();
 
@@ -161,21 +167,26 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             exit(1);
         }
 
+        // Extract rev from arguments
+        $vcs_rev = null;
+        if ( false !== ( $rev_key = array_search( '-r', $values['vcsArgs'] ) ) ) {
+            $vcs_rev = $values['vcsArgs'][$rev_key + 1];
+            unset($values['vcsArgs'][$rev_key]);
+            unset($values['vcsArgs'][$rev_key + 1]);
+        }
+
         // 1. Get changed files
+        // This should get staged files if used a pre-commit,
+        // or changes between a revision (-r xx) and HEAD,
+        // or changes between a revision range (-r xx:yy )
         // --------------------
         
         if ($values['vcsType'] === 'git') {
-            // Access objects in the current index (staged but not yet commited).
-            // Do we have a commit [range] ?
-            $args = $values['vcsArgs'];
-            $rev = '--staged';
-            if ( false !== ( $_r = array_search( '-r', $args ) ) ) {
-                $rev = str_replace( ':', ' ', $args[$_r+1] );
-            }
-            $contents = $this->executeCommand( sprintf(
+            $rev = ( $vcs_rev === null ) ? '--staged' : str_replace( ':', ' ', $vcs_rev );
+            $command = sprintf(
                 'git diff --name-status %s',
                 $rev
-                ) );
+                );
         }
         else if ($values['vcsType'] === 'svn') {
             // If supplied a transaction, or running on server, use svnlook, to handle svn:pre-commit ( on svn server )
@@ -188,30 +199,29 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             // else, use svn diff, to handle local execution
             else {
                 $args = array_splice( $values['vcsArgs'], 1 );
-                if ( 
-                    false !== ( $_r = array_search( '-r', $args ) ) 
-                    && 
-                    strpos( $args[$_r+1], ':' ) === false
-                    ) {
-                    $args[$_r+1] = $args[$_r+1] . ':HEAD';
+                if ( $vcs_rev ) {
+                    $rev = $vcs_rev;
+                    if ( strpos( $rev, ':' ) === false ) {
+                        $rev = $vcs_rev . ':HEAD';
+                    }
                 }
-                elseif ( false === ( $_r = array_search( '-r', $args ) )  ) {
-                    $args[] = '-r';
+                else {
                     $info = preg_match('#Revision: (\d+)#', `svn info -r 'HEAD' | grep 'Revision: '`, $matches ) ? $matches[1] : null;
-                    $args[] = $info*1-1 . ':' . 'HEAD';
+                    $rev = ( intval( $info ) - 1 ) . ':' . 'HEAD';
                 }
                 $command = sprintf(
-                    'svn diff %s --summarize',
-                    implode( ' ', $args )                    
+                    'svn diff -r %s %s --summarize',
+                    $rev,
+                    implode( ' ', $args )
                     );
                 
             }
-            $contents = $this->executeCommand( $command );
         }
         else {
             printf( 'Unknown VCS of type "%s".' . PHP_EOL, $values['vcsType'] );
             exit(1);
         }
+        $contents = $this->executeCommand( $command );
 
         // Filter changed files, add to paths to check
         foreach( preg_split("/\v|\n/", $contents, -1, PREG_SPLIT_NO_EMPTY) as $line ) {
@@ -299,18 +309,14 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
 
             if ( $values['vcsType'] == 'git' ) {
                 // Get file from a certain revision, fallback to STAGED if not provided
-                $args = $values['vcsArgs'];
-                $rev = ''; // Fallback to current staged file
-                if ( false !== ( $_r = array_search( '-r', $args ) ) ) {
-                    $rev = str_replace( ':', ' ', $args[$_r+1] );
-                }
+                $rev = ( $vcs_rev )
+                    ? $rev = str_replace( ':', ' ', $vcs_rev )
+                    : '';
                 $command = sprintf( 
-                    'cd %s && git show %s:%s',
-                    $this->repo_root, 
+                    'git show %s:%s',
                     $rev, // Empty rev means staged file
                     $path
                     );
-                $contents = $this->executeCommand( $command );
             }
             elseif ( $values['vcsType'] == 'svn' ) {
                 // Transactions happen on svn server, not local 
@@ -321,35 +327,39 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
                         implode(' ', $values['vcsArgs']),
                         $path
                         );
-                    $contents = $this->executeCommand( $command );
                 }
                 else { // locally invoked
                     // We're cd'ing to the dir anyway, no need to pass the directory
                     $args = array_splice( $values['vcsArgs'], 1 );
-                    if ( 
-                        false !== ( $_r = array_search( '-r', $args ) ) 
-                        && 
-                        strpos( $args[$_r+1], ':' ) !== false
-                        ) {
-                        $args[$_r+1] = preg_match( '#(.*):#', $args[$_r+1], $matches ) ? $matches[1] : null;
-                    }
-                    // If no -r is passed, check the HEAD~1 revision
-                    elseif ( false === ( $_r = array_search( '-r', $args ) )  ) {
-                        $args[] = '-r';
-                        $info = preg_match('#Revision: (\d+)#', `cd {$this->repo_root} && svn info -r 'HEAD' | grep 'Revision: '`, $matches ) ? $matches[1] : null;
-                        $args[] = $info*1-1;
-                    }
+
                     // We need the file at that certain revision, -c here doesn't fit, replace with -r
-                    $args = str_replace( '-c', '-r', implode( ' ', $args ) );
+                    if ( false !== ( $_c = array_search( '-c', $args ) ) ) {
+                        unset($args[$_c]);
+                        $vcs_rev = $args[$_c + 1];
+                        unset($args[$_c + 1]);
+                    }
+
+                    if ( $vcs_rev ) {
+                        $rev = $vcs_rev;
+                        if ( strpos( $rev, ':' ) !== false ) {
+                            $rev = preg_match( '#(.*):#', $rev, $matches ) ? $matches[1] : null;
+                        }
+                    }
+                    else {
+                        $info = preg_match('#Revision: (\d+)#', `svn info -r 'HEAD' | grep 'Revision: '`, $matches ) ? $matches[1] : null;
+                        $rev = ( intval( $info ) - 1 );
+                    }
+
                     $command = sprintf(
-                        'cd %s && svn cat %s %s',
-                        $this->repo_root,
-                        $args,
+                        'svn cat -r %s %s %s',
+                        implode( ' ', $args ),
+                        $rev,
                         str_replace($this->repo_root.'/', '', $path)
                         );
-                    $contents = $this->executeCommand( $command );
                 }
             }
+            
+            $contents = $this->executeCommand( $command );
 
             $phpcs->processFile( $path, $contents );
 
@@ -388,8 +398,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
                 $rev = $rev . ' --';
             }
             $command = sprintf(
-                'cd %s && git diff -U0 %s',
-                $this->repo_root,
+                'git diff -U0 %s',
                 $rev
                 );
         }
@@ -401,8 +410,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
                 unset($args[$_t+1]);
             }
             $command = sprintf( 
-                'cd %s && svn diff %s --no-diff-deleted --diff-cmd diff -x -U0', 
-                $this->repo_root,
+                'svn diff %s --no-diff-deleted --diff-cmd diff -x -U0', 
                 implode( ' ', $args )
                 );
         }
@@ -502,17 +510,22 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
 
         $changed_lines = $this->process_diff();
         foreach ( $filesViolations as $file => $issues ) {
-            foreach ( array( 'warnings', 'errors' ) as $type ) {
-                $count = 0;
-                foreach ( $issues[$type] as $line => $issue ) {
-                    if ( ! in_array( $line, $changed_lines[$file] ) ) {
-                        unset( $filesViolations[$file][$type][$line] );
-                    } else {
-                        $count += count($issue);
+            if ( empty( $changed_lines[$file] ) ) {
+                $this->debug && printf( 'File %s didnt change in specified range.', $file );
+            }
+            else {
+                foreach ( array( 'warnings', 'errors' ) as $type ) {
+                    $count = 0;
+                    foreach ( $issues[$type] as $line => $issue ) {
+                        if ( ! in_array( $line, $changed_lines[$file] ) ) {
+                            unset( $filesViolations[$file][$type][$line] );
+                        } else {
+                            $count += count($issue);
+                        }
                     }
+                    $filesViolations[$file]['num' . ucfirst($type)] = $count;
+                    $count = 0;
                 }
-                $filesViolations[$file]['num' . ucfirst($type)] = $count;
-                $count = 0;
             }
         }
 
@@ -556,6 +569,8 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             echo PHP_Timer::resourceUsage().PHP_EOL.PHP_EOL;
         }
 
+        $this->debug && die(1);
+
         // They should all return the same value, so it
         // doesn't matter which return value we end up using.
         return $errors;
@@ -563,7 +578,12 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
     }//end printErrorReport()
 
     function executeCommand( $command, $split = false ) {
-        $handle = popen($command, 'r');
+        $handle = popen( sprintf(
+                            'cd %s && %s',
+                            $this->repo_root,
+                            $command
+                            ),
+                        'r' );
         if ($handle === false) {
             printf( 'Could not execute: %s' . PHP_EOL, $command );
             exit(1);
@@ -572,8 +592,10 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         fclose($handle);
         if ( $split ) {
             $lines = preg_split("/\v|\n/", $contents, -1, PREG_SPLIT_NO_EMPTY);
-            return $lines;
+            $content = $lines;
         }
+
+        $this->debug && printf( '== Executing: %s' . PHP_EOL, $command );
         return $contents;
     }
 
