@@ -198,7 +198,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             // If supplied a transaction, or running on server, use svnlook, to handle svn:pre-commit ( on svn server )
             if ( in_array( '-t', $values['vcsArgs'] ) || ! $values['direct-call'] ) {
                 $command = sprintf(
-                    'svnlook changed %s',
+                    PHP_CODESNIFFER_SVNLOOK . ' changed %s',
                     implode(' ', $values['vcsArgs'])
                 );
             }
