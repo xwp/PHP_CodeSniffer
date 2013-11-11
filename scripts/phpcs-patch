@@ -76,7 +76,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
      * Enable debug messages
      * @var boolean
      */
-    public $debug = true;
+    public $debug = false;
 
     /**
      * Get a list of default values for all possible command line arguments.
@@ -105,6 +105,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             }
         }
 
+        $defaults['debug'] = false;
         $defaults['vcsArgs'] = array();
         $defaults['direct-call'] = false; // Defaults to NO, I'M A HOOK
 
@@ -134,6 +135,9 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         else if ( $arg === '--svn' ) {
             $values['vcsType'] = 'svn';
         }
+        else if ( $arg == '--debug' ) {
+            $values['debug'] = true;
+        }
         else if ( $arg == '--local' ) {
             $values['direct-call'] = true;
         }
@@ -157,6 +161,8 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         if (empty($values) === true) {
             $values = parent::getCommandLineValues();
         }
+
+        $this->debug = $values['debug'];
 
         $this->repo_root  = trim( `pwd` );
 
