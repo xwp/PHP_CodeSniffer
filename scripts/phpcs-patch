@@ -315,9 +315,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
 
             if ( $values['vcsType'] == 'git' ) {
                 // Get file from a certain revision, fallback to STAGED if not provided
-                $rev = ( $vcs_rev )
-                    ? $rev = str_replace( ':', ' ', $vcs_rev )
-                    : '';
+                $rev = preg_replace( '/.*:/', '', $vcs_rev );
                 $command = sprintf( 
                     'git show %s:%s',
                     $rev, // Empty rev means staged file
