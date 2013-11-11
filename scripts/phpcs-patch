@@ -377,9 +377,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
 
     /**
      * Process VCS diff, and extract changes lines
-     * @param  string $path Path to file within repo
-     * @param  string $vcs  VCS type (git|svn)
-     * @return array        Array of changed lines
+     * @return array changed lines
      */
     public function process_diff() {
 
@@ -592,7 +590,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         fclose($handle);
         if ( $split ) {
             $lines = preg_split("/\v|\n/", $contents, -1, PREG_SPLIT_NO_EMPTY);
-            $content = $lines;
+            $contents = $lines;
         }
 
         $this->debug && printf( '== Executing: %s' . PHP_EOL, $command );
