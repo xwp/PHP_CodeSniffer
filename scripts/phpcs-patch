@@ -567,8 +567,6 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             echo PHP_Timer::resourceUsage().PHP_EOL.PHP_EOL;
         }
 
-        $this->debug && die(1);
-
         // They should all return the same value, so it
         // doesn't matter which return value we end up using.
         return $errors;
