@@ -22,8 +22,6 @@ if (is_file(dirname(__FILE__).'/../CodeSniffer/CLI.php') === true) {
     include_once 'PHP/CodeSniffer/CLI.php';
 }
 
-define('PHP_CODESNIFFER_SVNLOOK', '/usr/bin/svnlook');
-
 /**
  * Installation instructions for SVN
  * Add the following line to your repofolder/hooks/pre-commit on the svn server
@@ -198,7 +196,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             // If supplied a transaction, or running on server, use svnlook, to handle svn:pre-commit ( on svn server )
             if ( in_array( '-t', $values['vcsArgs'] ) || ! $values['direct-call'] ) {
                 $command = sprintf(
-                    PHP_CODESNIFFER_SVNLOOK . ' changed %s',
+                    'svnlook changed %s',
                     implode(' ', $values['vcsArgs'])
                 );
             }
@@ -327,7 +325,7 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
                 if ( ! $values['direct-call'] ) {
                     // Get the contents of each file, as it would be after this transaction.
                     $command = sprintf(
-                        PHP_CODESNIFFER_SVNLOOK . ' cat %s %s',
+                        'svnlook cat %s %s',
                         implode(' ', $values['vcsArgs']),
                         $path
                         );
