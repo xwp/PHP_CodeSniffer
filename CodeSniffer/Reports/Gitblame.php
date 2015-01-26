@@ -7,8 +7,8 @@
  * @category  PHP
  * @package   PHP_CodeSniffer
  * @author    Ben Selby <benmatselby@gmail.com>
- * @copyright 2009 SQLI <www.sqli.com>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2009-2014 SQLI <www.sqli.com>
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
@@ -21,8 +21,8 @@
  * @category  PHP
  * @package   PHP_CodeSniffer
  * @author    Ben Selby <benmatselby@gmail.com>
- * @copyright 2009 SQLI <www.sqli.com>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2009-2014 SQLI <www.sqli.com>
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @version   Release: 1.2.2
  * @link      http://pear.php.net/package/PHP_CodeSniffer
@@ -65,9 +65,9 @@ class PHP_CodeSniffer_Reports_Gitblame extends PHP_CodeSniffer_Reports_VersionCo
             return false;
         }
 
-        $parts = array_slice($parts, 0, (count($parts) - 2));
-
-        return preg_replace('|\(|', '', implode($parts, ' '));
+        $parts  = array_slice($parts, 0, (count($parts) - 2));
+        $author = preg_replace('|\(|', '', implode($parts, ' '));
+        return $author;
 
     }//end getAuthor()
 
@@ -129,5 +129,3 @@ class PHP_CodeSniffer_Reports_Gitblame extends PHP_CodeSniffer_Reports_VersionCo
 
 
 }//end class
-
-?>

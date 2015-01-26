@@ -7,13 +7,13 @@ switch ($expr) {
         echo 'Second case, which falls through';
         // no break
     case 2:
-    case 3:
-    case 4:
+    case   3:
+    Case 4:
         echo 'Third case, return instead of break';
         return;
-    default:
+    Default:
         echo 'Default case';
-        break;
+            break;
 }
 
 switch ($expr) {
@@ -23,7 +23,7 @@ switch ($expr) {
     case 1 :
         echo 'Second case';
         // no break
-case 2:
+    case 2:
     case 3:
         echo 'Third case';
     return;
@@ -34,7 +34,7 @@ case 2:
 }
 
 switch ($foo) {
-    case 'Foo': {
+    case'Foo': {
         echo 'foo';
         break;
         }
@@ -66,5 +66,26 @@ switch (0) {
                 break;
         }
         break;
+}
+
+switch ($foo) {
+    case Foo::ONE:
+    case Foo::TWO:
+    case Foo::Class:
+        break;
+}
+
+switch (true) {
+    case $value instanceof StdClass:
+        return 1;
+    case strpos('_', get_class($value)) !== false:
+        break;
+}
+
+switch (true) {
+    case $value instanceof StdClass:
+        if ($value) {
+            return null;
+        }
 }
 ?>

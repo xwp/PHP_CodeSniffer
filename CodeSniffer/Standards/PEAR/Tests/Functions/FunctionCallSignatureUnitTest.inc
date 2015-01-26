@@ -1,5 +1,5 @@
-<?php
-
+<?php test(
+);
 test();
 test($arg, $arg2);
 test ();
@@ -134,12 +134,12 @@ array_map(
     function($x)
     {
         return trim($x, $y);
-    }, $foo
+    }, $foo,
     $array
 );
 
 $bar = new stdClass(
-    4, 5, 6
+    4, /* thanks */ 5, /* PSR-2 */ 6
 );
 
 public function doSomething()
@@ -177,8 +177,8 @@ foo(
     array(
         'this',
         'is',
-        'an',
-        'array'
+'an',
+'array'
     ),
     array(
         'this',
@@ -188,7 +188,9 @@ foo(
      ),
     function($x)
     {
-         return trim($x);
+        echo 'wee';
+
+        return trim($x);
    }
 );
 
@@ -205,4 +207,11 @@ function foo()
         'string'.
     );
 }
-?>
+
+// @codingStandardsChangeSetting PEAR.Functions.FunctionCallSignature requiredSpacesAfterOpen 1
+// @codingStandardsChangeSetting PEAR.Functions.FunctionCallSignature requiredSpacesBeforeClose 1
+test($arg, $arg2);
+test( $arg, $arg2 );
+test(  $arg, $arg2  );
+// @codingStandardsChangeSetting PEAR.Functions.FunctionCallSignature requiredSpacesAfterOpen 0
+// @codingStandardsChangeSetting PEAR.Functions.FunctionCallSignature requiredSpacesBeforeClose 0

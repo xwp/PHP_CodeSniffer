@@ -39,4 +39,41 @@ foreach ($array as $element) :
     echo 'hello';
 endforeach;
 
+while (!$this->readLine($tokens, $tag));
+while (!$this->readLine($tokens, $tag)); //skip to end of file
+
+foreach ($cookies as $cookie)
+    if ($cookie->match($uri, $matchSessionCookies, $now))
+        $ret[] = $cookie;
+
+foreach ($stringParade as $hit)
+    $hitParade[] = $hit + 0; //cast to integer
+
+if ($foo) :
+    echo 'true';
+elseif ($something) :
+    echo 'foo';
+else:
+    echo 'false';
+endif;
+
+function test()
+{
+    if ($a)
+        $a.=' '.($b ? 'b' : ($c ? ($d ? 'd' : 'c') : ''));
+}
+
+if ($a)
+    foreach ($b as $c) {
+        if ($d) {
+            $e=$f;
+            $g=$h;
+        } elseif ($i==0) {
+            $j=$k;
+        }
+    }
+
 ?>
+<div style="text-align: right;">
+    <?php if ($model->scenario == 'simple') $widget->renderPager() ?>
+</div>

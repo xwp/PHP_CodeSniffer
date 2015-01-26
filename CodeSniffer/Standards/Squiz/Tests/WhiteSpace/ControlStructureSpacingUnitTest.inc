@@ -136,4 +136,64 @@ switch ($moo)
         $moo = 'moo';
     break;
 }
-?>
+
+do {
+}
+while (true);
+
+try {
+    // Something
+} catch (Exception $e) {
+    // Something
+}
+
+try {
+
+    // Something
+
+} catch (Exception $e) {
+
+    // Something
+
+}
+
+if ($one) {
+}
+elseif ($two) {
+}
+// else if something
+else if ($three) {
+} // else do something
+else {
+}
+
+if ($one) {
+
+}
+
+do {
+    echo 'hi';
+} while (  $blah  );
+
+if ($one) {
+}
+// No blank line here.
+if ($two) {
+}
+
+switch ($moo)
+{
+    case 'blar':
+        if ($moo === 'blar2') {
+            $moo = 'blar'
+        }
+
+    return $moo;
+}
+
+try {
+    // Something
+}
+catch (Exception $e) {
+    // Something
+}

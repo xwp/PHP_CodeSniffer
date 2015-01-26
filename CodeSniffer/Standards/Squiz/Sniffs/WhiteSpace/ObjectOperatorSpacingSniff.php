@@ -8,7 +8,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
@@ -22,7 +22,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @version   Release: @package_version@
  * @link      http://pear.php.net/package/PHP_CodeSniffer
@@ -55,22 +55,46 @@ class Squiz_Sniffs_WhiteSpace_ObjectOperatorSpacingSniff implements PHP_CodeSnif
     public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
     {
         $tokens = $phpcsFile->getTokens();
-
-        $prevType = $tokens[($stackPtr - 1)]['code'];
-        if (in_array($prevType, PHP_CodeSniffer_Tokens::$emptyTokens) === true) {
-            $error = 'Space found before object operator';
-            $phpcsFile->addError($error, $stackPtr, 'Before');
+        if ($tokens[($stackPtr - 1)]['code'] !== T_WHITESPACE) {
+            $before = 0;
+        } else {
+            if ($tokens[($stackPtr - 2)]['line'] !== $tokens[$stackPtr]['line']) {
+                $before = 'newline';
+            } else {
+                $before = $tokens[($stackPtr - 1)]['length'];
+            }
         }
 
-        $nextType = $tokens[($stackPtr + 1)]['code'];
-        if (in_array($nextType, PHP_CodeSniffer_Tokens::$emptyTokens) === true) {
+        if ($tokens[($stackPtr + 1)]['code'] !== T_WHITESPACE) {
+            $after = 0;
+        } else {
+            if ($tokens[($stackPtr + 2)]['line'] !== $tokens[$stackPtr]['line']) {
+                $after = 'newline';
+            } else {
+                $after = $tokens[($stackPtr + 1)]['length'];
+            }
+        }
+
+        $phpcsFile->recordMetric($stackPtr, 'Spacing before object operator', $before);
+        $phpcsFile->recordMetric($stackPtr, 'Spacing after object operator', $after);
+
+        if ($before !== 0) {
+            $error = 'Space found before object operator';
+            $fix   = $phpcsFile->addFixableError($error, $stackPtr, 'Before');
+            if ($fix === true) {
+                $phpcsFile->fixer->replaceToken(($stackPtr - 1), '');
+            }
+        }
+
+        if ($after !== 0) {
             $error = 'Space found after object operator';
-            $phpcsFile->addError($error, $stackPtr, 'After');
+            $fix   = $phpcsFile->addFixableError($error, $stackPtr, 'After');
+            if ($fix === true) {
+                $phpcsFile->fixer->replaceToken(($stackPtr + 1), '');
+            }
         }
 
     }//end process()
 
 
 }//end class
-
-?>

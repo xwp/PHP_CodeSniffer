@@ -65,4 +65,24 @@ return array_udiff(
         return $foo;
     }
 );
-?>
+
+var_dump(<<<FOO
+foo
+FOO
+,
+<<<BAR
+bar
+BAR
+, <<<BAZ
+baz
+BAZ
+,<<<'NOW'
+now
+NOW
+,  <<<'THEN'
+then
+THEN
+);
+
+if (in_array($arg1, ['foo','bar'])) {}
+if (in_array($arg1, array('foo','bar'))) {}

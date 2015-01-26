@@ -7,6 +7,7 @@ $string = 'Hello'."$there '".'hi';
 $string = "My name is 'Greg'";
 $string = "Hello"." There"."\n";
 $string = "Hello There\f";
+$string = "Hello There\b";
 $string = "Hello\vThere";
 $string = "\x0";
 $string = 'Hello '.$there.' Greg';
@@ -16,4 +17,11 @@ $string = "\0";
 
 $x = "bar = '$z',
 baz = '" . $a . "'...$x";
-?>
+
+$string = "Hello
+there";
+$string = 'Hello
+there';
+
+echo "window.location = \"".$url."\";\n";
+echo ""

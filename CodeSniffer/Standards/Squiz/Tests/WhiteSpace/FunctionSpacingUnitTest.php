@@ -8,7 +8,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
@@ -23,7 +23,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @version   Release: @package_version@
  * @link      http://pear.php.net/package/PHP_CodeSniffer
@@ -38,31 +38,33 @@ class Squiz_Tests_WhiteSpace_FunctionSpacingUnitTest extends AbstractSniffUnitTe
      * The key of the array should represent the line number and the value
      * should represent the number of errors that should occur on that line.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getErrorList()
     {
         return array(
-                2   => 1,
-                9   => 1,
-                18  => 1,
-                25  => 1,
+                20  => 1,
                 29  => 1,
-                35  => 1,
                 38  => 1,
-                40  => 1,
+                45  => 1,
+                49  => 1,
                 55  => 1,
-                74  => 1,
-                85  => 1,
-                87  => 1,
-                93  => 2,
-                115 => 1,
-                134 => 1,
-                147 => 2,
-                164 => 1,
-                198 => 1,
-                213 => 1,
-                232 => 1,
+                58  => 1,
+                60  => 1,
+                75  => 1,
+                94  => 1,
+                105 => 1,
+                107 => 1,
+                113 => 2,
+                135 => 1,
+                154 => 1,
+                167 => 2,
+                184 => 1,
+                218 => 1,
+                233 => 1,
+                252 => 1,
+                275 => 1,
+                276 => 1,
                );
 
     }//end getErrorList()
@@ -74,7 +76,7 @@ class Squiz_Tests_WhiteSpace_FunctionSpacingUnitTest extends AbstractSniffUnitTe
      * The key of the array should represent the line number and the value
      * should represent the number of warnings that should occur on that line.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getWarningList()
     {
@@ -84,5 +86,3 @@ class Squiz_Tests_WhiteSpace_FunctionSpacingUnitTest extends AbstractSniffUnitTe
 
 
 }//end class
-
-?>

@@ -8,7 +8,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
@@ -23,7 +23,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @version   Release: @package_version@
  * @link      http://pear.php.net/package/PHP_CodeSniffer
@@ -38,7 +38,7 @@ class Generic_Tests_Formatting_MultipleStatementAlignmentUnitTest extends Abstra
      * The key of the array should represent the line number and the value
      * should represent the number of errors that should occur on that line.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getErrorList()
     {
@@ -55,7 +55,7 @@ class Generic_Tests_Formatting_MultipleStatementAlignmentUnitTest extends Abstra
      *
      * @param string $testFile The name of the file being tested.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getWarningList($testFile='MultipleStatementAlignmentUnitTest.inc')
     {
@@ -72,6 +72,7 @@ class Generic_Tests_Formatting_MultipleStatementAlignmentUnitTest extends Abstra
                     38  => 1,
                     48  => 1,
                     50  => 1,
+                    51  => 1,
                     61  => 1,
                     62  => 1,
                     64  => 1,
@@ -93,6 +94,8 @@ class Generic_Tests_Formatting_MultipleStatementAlignmentUnitTest extends Abstra
                     178 => 1,
                     179 => 1,
                     182 => 1,
+                    206 => 1,
+                    207 => 1,
                    );
         break;
         case 'MultipleStatementAlignmentUnitTest.js':
@@ -107,6 +110,7 @@ class Generic_Tests_Formatting_MultipleStatementAlignmentUnitTest extends Abstra
                     38  => 1,
                     48  => 1,
                     50  => 1,
+                    51  => 1,
                     61  => 1,
                     62  => 1,
                     64  => 1,
@@ -119,6 +123,7 @@ class Generic_Tests_Formatting_MultipleStatementAlignmentUnitTest extends Abstra
                     83  => 1,
                     85  => 1,
                     86  => 1,
+                    100 => 1,
                    );
             break;
         default:

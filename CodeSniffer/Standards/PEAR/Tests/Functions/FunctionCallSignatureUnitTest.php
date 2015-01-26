@@ -8,7 +8,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
@@ -23,7 +23,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @version   Release: @package_version@
  * @link      http://pear.php.net/package/PHP_CodeSniffer
@@ -38,13 +38,38 @@ class PEAR_Tests_Functions_FunctionCallSignatureUnitTest extends AbstractSniffUn
      * The key of the array should represent the line number and the value
      * should represent the number of errors that should occur on that line.
      *
-     * @return array(int => int)
+     * @param string $testFile The name of the file being tested.
+     *
+     * @return array<int, int>
      */
-    public function getErrorList()
+    public function getErrorList($testFile='FunctionCallSignatureUnitTest.inc')
     {
+        if ($testFile === 'FunctionCallSignatureUnitTest.js') {
+            return array(
+                    5  => 1,
+                    6  => 2,
+                    7  => 1,
+                    8  => 1,
+                    9  => 2,
+                    10 => 3,
+                    17 => 1,
+                    18 => 1,
+                    21 => 1,
+                    24 => 1,
+                    28 => 2,
+                    30 => 2,
+                    35 => 1,
+                    49 => 1,
+                    51 => 1,
+                    54 => 1,
+                    70 => 1,
+                    71 => 1,
+                   );
+        }
+
         return array(
                 5   => 1,
-                6   => 1,
+                6   => 2,
                 7   => 1,
                 8   => 1,
                 9   => 2,
@@ -53,7 +78,7 @@ class PEAR_Tests_Functions_FunctionCallSignatureUnitTest extends AbstractSniffUn
                 18  => 1,
                 31  => 1,
                 34  => 1,
-                43  => 1,
+                43  => 2,
                 57  => 1,
                 59  => 1,
                 63  => 1,
@@ -61,14 +86,19 @@ class PEAR_Tests_Functions_FunctionCallSignatureUnitTest extends AbstractSniffUn
                 82  => 1,
                 93  => 1,
                 100 => 1,
-                106 => 1,
+                106 => 2,
                 119 => 1,
                 120 => 1,
                 129 => 1,
                 137 => 1,
                 142 => 2,
                 171 => 1,
-                203 => 1,
+                180 => 1,
+                181 => 1,
+                194 => 1,
+                205 => 1,
+                213 => 2,
+                215 => 2,
                );
 
     }//end getErrorList()
@@ -80,7 +110,7 @@ class PEAR_Tests_Functions_FunctionCallSignatureUnitTest extends AbstractSniffUn
      * The key of the array should represent the line number and the value
      * should represent the number of warnings that should occur on that line.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getWarningList()
     {
@@ -90,5 +120,3 @@ class PEAR_Tests_Functions_FunctionCallSignatureUnitTest extends AbstractSniffUn
 
 
 }//end class
-
-?>

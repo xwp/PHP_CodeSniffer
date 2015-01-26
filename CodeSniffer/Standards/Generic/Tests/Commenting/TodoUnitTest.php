@@ -8,7 +8,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
@@ -23,7 +23,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @version   Release: @package_version@
  * @link      http://pear.php.net/package/PHP_CodeSniffer
@@ -40,7 +40,7 @@ class Generic_Tests_Commenting_TodoUnitTest extends AbstractSniffUnitTest
      *
      * @param string $testFile The name of the file being tested.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getErrorList($testFile='TodoUnitTest.inc')
     {
@@ -57,41 +57,22 @@ class Generic_Tests_Commenting_TodoUnitTest extends AbstractSniffUnitTest
      *
      * @param string $testFile The name of the file being tested.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getWarningList($testFile='TodoUnitTest.inc')
     {
-        switch ($testFile) {
-        case 'TodoUnitTest.inc':
-            return array(
-                    3  => 1,
-                    7  => 1,
-                    10 => 1,
-                    13 => 1,
-                    16 => 1,
-                    18 => 1,
-                    21 => 1,
-                   );
-            break;
-        case 'TodoUnitTest.js':
-            return array(
-                    3  => 1,
-                    7  => 1,
-                    10 => 1,
-                    13 => 1,
-                    16 => 1,
-                    18 => 1,
-                    21 => 1,
-                   );
-            break;
-        default:
-            return array();
-            break;
-        }//end switch
+        return array(
+                3  => 1,
+                4  => 1,
+                7  => 1,
+                10 => 1,
+                13 => 1,
+                16 => 1,
+                18 => 1,
+                21 => 1,
+               );
 
     }//end getWarningList()
 
 
 }//end class
-
-?>

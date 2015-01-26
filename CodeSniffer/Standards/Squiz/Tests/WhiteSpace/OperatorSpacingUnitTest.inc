@@ -50,8 +50,8 @@ if ($result & 4) {
     if ($result | 4) {
     }
 }
-if ($result&4) {
-    if ($result |4) {
+if ($result&4 && $result  &  4) {
+    if ($result |4 || $result  |  4) {
     }
 }
 
@@ -106,8 +106,9 @@ function foo($boo = -1) {}
 $foo = array('boo' => -1);
 $x = $test ? -1 : 1;
 $y = $test ? 1 : -1;
+$z = $test ?: false;
 
-$closureWithDefaultParamter = function (array $testArray=array()) {};
+$closureWithDefaultParameter = function (array $testArray=array()) {};
 
 switch ($foo) {
 	case -1:
@@ -126,4 +127,29 @@ $y = -10 + 2;
 
 $a = $x?$y:$z;
 $a = $x ? $y : $z;
-?>
+
+$y = 1
+   + 2  
+   - 3;
+
+$y = 1 + 
+     2 - 
+     3;
+
+$y = 1
++ 2
+- 3;
+
+// @codingStandardsChangeSetting Squiz.WhiteSpace.OperatorSpacing ignoreNewlines true
+$y = 1
+   + 2
+   - 3;
+
+$y = 1 +
+     2 -
+     3;
+
+$y = 1
++ 2
+- 3;
+// @codingStandardsChangeSetting Squiz.WhiteSpace.OperatorSpacing ignoreNewlines false

@@ -100,4 +100,35 @@ abstract class Test implements
 {
 }
 
-?>
+interface MyInterface extends LongInterfaceName1, LongInterfaceName2, LongInterfaceName3, LoginInterfaceName4
+{
+}
+
+interface MyInterface extends
+    LongInterfaceName1,
+    LongInterfaceName2,
+    LongInterfaceName3,
+    LoginInterfaceName4
+{
+}
+
+interface MyInterface extends
+ LongInterfaceName1,
+    LongInterfaceName2,
+     LongInterfaceName3,
+LongInterfaceName4
+{
+}
+
+abstract
+class Test
+{
+}
+
+class ClassName implements
+
+    \ArrayAccess,\Countable,
+\Serializable
+{
+    // constants, properties, methods
+}

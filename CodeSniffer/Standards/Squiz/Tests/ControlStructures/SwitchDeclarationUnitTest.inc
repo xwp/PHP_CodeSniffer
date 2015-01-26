@@ -239,20 +239,20 @@ switch ($foo) {
 
 // Valid SWITCH statement.
 switch ($something) {
-    case '1':
+    case '1';
         $case = '1';
     return '1';
 
-    case '2':
-    case '3':
+    case '2';
+    case '3';
         $case = '5';
     return '2';
 
-    case '4':
+    case '4';
         $case = '4';
     return '3';
 
-    default:
+    default;
         $case = null;
     return '4';
 }
@@ -268,4 +268,38 @@ switch ($something) {
     default:
     throw new Exception('message');
 }
-?>
+
+switch ($something) {
+    case '1';
+        echo 'one';
+    break;
+
+    default:
+        echo 'default';
+    exit;
+}
+
+switch ($foo) {
+    case '1':
+        return; // comment
+    break;
+
+}
+
+// Correct Multi line breaking statement with return.
+switch ($foo) {
+    case 1:
+    return array(
+            'whiz',
+            'bang',
+           );
+
+    case 2:
+    return helper_func(
+        'whiz',
+        'bang'
+    );
+
+    default:
+    throw new Exception();
+}

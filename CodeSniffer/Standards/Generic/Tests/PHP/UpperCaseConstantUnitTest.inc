@@ -53,8 +53,11 @@ $x->null = 7;
 use Zend\Log\Writer\Null as NullWriter;
 new \Zend\Log\Writer\Null()
 
+namespace False;
+
 class True extends Null implements False {}
 
+use True\Something;
 use Something\True;
 class MyClass
 {
@@ -64,4 +67,15 @@ class MyClass
     }
 }
 
-?>
+$x = $f?false:TRUE;
+$x = $f? false:TRUE;
+
+class MyClass
+{
+    // Spice things up a little.
+    const true = FALSE;
+}
+
+var_dump(MyClass::true);
+
+function true() {}

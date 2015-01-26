@@ -7,7 +7,7 @@
  * @category  PHP
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
@@ -18,7 +18,7 @@
  * @category  PHP
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @version   Release: @package_version@
  * @link      http://pear.php.net/package/PHP_CodeSniffer
@@ -35,15 +35,11 @@ class Core_ErrorSuppressionTest extends PHPUnit_Framework_TestCase
     public function testSuppressError()
     {
         $phpcs = new PHP_CodeSniffer();
-        $phpcs->setTokenListeners('PEAR', array('Generic_Sniffs_PHP_LowerCaseConstantSniff'));
-        $phpcs->populateTokenListeners();
+        $phpcs->initStandard('PEAR', array('Generic.PHP.LowerCaseConstant'));
 
         // Process without suppression.
         $content = '<?php '.PHP_EOL.'$var = FALSE;';
-        $phpcs->processFile('noSuppressionTest.php', $content);
-
-        $files = $phpcs->getFiles();
-        $file  = $files[0];
+        $file    = $phpcs->processFile('noSuppressionTest.php', $content);
 
         $errors    = $file->getErrors();
         $numErrors = $file->getErrorCount();
@@ -52,10 +48,7 @@ class Core_ErrorSuppressionTest extends PHPUnit_Framework_TestCase
 
         // Process with suppression.
         $content = '<?php '.PHP_EOL.'// @codingStandardsIgnoreStart'.PHP_EOL.'$var = FALSE;'.PHP_EOL.'// @codingStandardsIgnoreEnd';
-        $phpcs->processFile('suppressionTest.php', $content);
-
-        $files = $phpcs->getFiles();
-        $file  = $files[1];
+        $file    = $phpcs->processFile('suppressionTest.php', $content);
 
         $errors    = $file->getErrors();
         $numErrors = $file->getErrorCount();
@@ -73,15 +66,11 @@ class Core_ErrorSuppressionTest extends PHPUnit_Framework_TestCase
     public function testSuppressSomeErrors()
     {
         $phpcs = new PHP_CodeSniffer();
-        $phpcs->setTokenListeners('PEAR', array('Generic_Sniffs_PHP_LowerCaseConstantSniff'));
-        $phpcs->populateTokenListeners();
+        $phpcs->initStandard('Generic', array('Generic.PHP.LowerCaseConstant'));
 
         // Process without suppression.
         $content = '<?php '.PHP_EOL.'$var = FALSE;'.PHP_EOL.'$var = TRUE;';
-        $phpcs->processFile('noSuppressionTest.php', $content);
-
-        $files = $phpcs->getFiles();
-        $file  = $files[0];
+        $file    = $phpcs->processFile('noSuppressionTest.php', $content);
 
         $errors    = $file->getErrors();
         $numErrors = $file->getErrorCount();
@@ -90,10 +79,7 @@ class Core_ErrorSuppressionTest extends PHPUnit_Framework_TestCase
 
         // Process with suppression.
         $content = '<?php '.PHP_EOL.'// @codingStandardsIgnoreStart'.PHP_EOL.'$var = FALSE;'.PHP_EOL.'// @codingStandardsIgnoreEnd'.PHP_EOL.'$var = TRUE;';
-        $phpcs->processFile('suppressionTest.php', $content);
-
-        $files = $phpcs->getFiles();
-        $file  = $files[1];
+        $file    = $phpcs->processFile('suppressionTest.php', $content);
 
         $errors    = $file->getErrors();
         $numErrors = $file->getErrorCount();
@@ -111,15 +97,11 @@ class Core_ErrorSuppressionTest extends PHPUnit_Framework_TestCase
     public function testSuppressWarning()
     {
         $phpcs = new PHP_CodeSniffer();
-        $phpcs->setTokenListeners('Squiz', array('Generic_Sniffs_Commenting_TodoSniff'));
-        $phpcs->populateTokenListeners();
+        $phpcs->initStandard('Generic', array('Generic.Commenting.Todo'));
 
         // Process without suppression.
         $content = '<?php '.PHP_EOL.'//TODO: write some code';
-        $phpcs->processFile('noSuppressionTest.php', $content);
-
-        $files = $phpcs->getFiles();
-        $file  = $files[0];
+        $file    = $phpcs->processFile('noSuppressionTest.php', $content);
 
         $warnings    = $file->getWarnings();
         $numWarnings = $file->getWarningCount();
@@ -128,10 +110,7 @@ class Core_ErrorSuppressionTest extends PHPUnit_Framework_TestCase
 
         // Process with suppression.
         $content = '<?php '.PHP_EOL.'// @codingStandardsIgnoreStart'.PHP_EOL.'//TODO: write some code'.PHP_EOL.'// @codingStandardsIgnoreEnd';
-        $phpcs->processFile('suppressionTest.php', $content);
-
-        $files = $phpcs->getFiles();
-        $file  = $files[1];
+        $file    = $phpcs->processFile('suppressionTest.php', $content);
 
         $warnings    = $file->getWarnings();
         $numWarnings = $file->getWarningCount();
@@ -142,6 +121,109 @@ class Core_ErrorSuppressionTest extends PHPUnit_Framework_TestCase
 
 
     /**
+     * Test suppressing a single error using a single line ignore.
+     *
+     * @return void
+     */
+    public function testSuppressLine()
+    {
+        $phpcs = new PHP_CodeSniffer();
+        $phpcs->initStandard('Generic', array('Generic.PHP.LowerCaseConstant'));
+
+        // Process without suppression.
+        $content = '<?php '.PHP_EOL.'$var = FALSE;'.PHP_EOL.'$var = FALSE;';
+        $file    = $phpcs->processFile('noSuppressionTest.php', $content);
+
+        $errors    = $file->getErrors();
+        $numErrors = $file->getErrorCount();
+        $this->assertEquals(2, $numErrors);
+        $this->assertEquals(2, count($errors));
+
+        // Process with suppression.
+        $content = '<?php '.PHP_EOL.'// @codingStandardsIgnoreLine'.PHP_EOL.'$var = FALSE;'.PHP_EOL.'$var = FALSE;';
+        $file    = $phpcs->processFile('suppressionTest.php', $content);
+
+        $errors    = $file->getErrors();
+        $numErrors = $file->getErrorCount();
+        $this->assertEquals(1, $numErrors);
+        $this->assertEquals(1, count($errors));
+
+    }//end testSuppressLine()
+
+
+    /**
+     * Test that using a single line ignore does not interfere with other suppressions.
+     *
+     * @return void
+     */
+    public function testNestedSuppressLine()
+    {
+        $phpcs = new PHP_CodeSniffer();
+        $phpcs->initStandard('Generic', array('Generic.PHP.LowerCaseConstant'));
+
+        // Process with codingStandardsIgnore[Start|End] suppression and no single line suppression.
+        $content = '<?php '.PHP_EOL.
+            '// @codingStandardsIgnoreStart'.PHP_EOL.
+            '$var = FALSE;'.PHP_EOL.
+            '$var = TRUE;'.PHP_EOL.
+            '// @codingStandardsIgnoreEnd';
+        $file    = $phpcs->processFile('oneSuppressionTest.php', $content);
+
+        $errors    = $file->getErrors();
+        $numErrors = $file->getErrorCount();
+        $this->assertEquals(0, $numErrors);
+        $this->assertEquals(0, count($errors));
+
+        // Process with codingStandardsIgnoreLine suppression
+        // nested within codingStandardsIgnore[Start|End] suppression.
+        $content = '<?php '.PHP_EOL.
+            '// @codingStandardsIgnoreStart'.PHP_EOL.
+            '// @codingStandardsIgnoreLine'.PHP_EOL.
+            '$var = FALSE;'.PHP_EOL.
+            '$var = TRUE;'.PHP_EOL.
+            '// @codingStandardsIgnoreEnd';
+        $file    = $phpcs->processFile('nestedSuppressionTest.php', $content);
+
+        $errors    = $file->getErrors();
+        $numErrors = $file->getErrorCount();
+        $this->assertEquals(0, $numErrors);
+        $this->assertEquals(0, count($errors));
+
+    }//end testNestedSuppressLine()
+
+
+    /**
+     * Test suppressing a scope opener.
+     *
+     * @return void
+     */
+    public function testSuppressScope()
+    {
+        $phpcs = new PHP_CodeSniffer();
+        $phpcs->initStandard('PEAR', array('PEAR.NamingConventions.ValidVariableName'));
+
+        // Process without suppression.
+        $content = '<?php '.PHP_EOL.'class MyClass() {'.PHP_EOL.'function myFunction() {'.PHP_EOL.'$this->foo();'.PHP_EOL.'}'.PHP_EOL.'}';
+        $file    = $phpcs->processFile('noSuppressionTest.php', $content);
+
+        $errors    = $file->getErrors();
+        $numErrors = $file->getErrorCount();
+        $this->assertEquals(0, $numErrors);
+        $this->assertEquals(0, count($errors));
+
+        // Process with suppression.
+        $content = '<?php '.PHP_EOL.'class MyClass() {'.PHP_EOL.'//@codingStandardsIgnoreStart'.PHP_EOL.'function myFunction() {'.PHP_EOL.'//@codingStandardsIgnoreEnd'.PHP_EOL.'$this->foo();'.PHP_EOL.'}'.PHP_EOL.'}';
+        $file    = $phpcs->processFile('suppressionTest.php', $content);
+
+        $errors    = $file->getErrors();
+        $numErrors = $file->getErrorCount();
+        $this->assertEquals(0, $numErrors);
+        $this->assertEquals(0, count($errors));
+
+    }//end testSuppressScope()
+
+
+    /**
      * Test suppressing a whole file.
      *
      * @return void
@@ -149,15 +231,11 @@ class Core_ErrorSuppressionTest extends PHPUnit_Framework_TestCase
     public function testSuppressFile()
     {
         $phpcs = new PHP_CodeSniffer();
-        $phpcs->setTokenListeners('Squiz', array('Generic_Sniffs_Commenting_TodoSniff'));
-        $phpcs->populateTokenListeners();
+        $phpcs->initStandard('Generic', array('Generic.Commenting.Todo'));
 
         // Process without suppression.
         $content = '<?php '.PHP_EOL.'//TODO: write some code';
-        $phpcs->processFile('noSuppressionTest.php', $content);
-
-        $files = $phpcs->getFiles();
-        $file  = $files[0];
+        $file    = $phpcs->processFile('suppressionTest.php', $content);
 
         $warnings    = $file->getWarnings();
         $numWarnings = $file->getWarningCount();
@@ -166,10 +244,7 @@ class Core_ErrorSuppressionTest extends PHPUnit_Framework_TestCase
 
         // Process with suppression.
         $content = '<?php '.PHP_EOL.'// @codingStandardsIgnoreFile'.PHP_EOL.'//TODO: write some code';
-        $phpcs->processFile('suppressionTest.php', $content);
-
-        $files = $phpcs->getFiles();
-        $file  = $files[1];
+        $file    = $phpcs->processFile('suppressionTest.php', $content);
 
         $warnings    = $file->getWarnings();
         $numWarnings = $file->getWarningCount();
@@ -178,10 +253,7 @@ class Core_ErrorSuppressionTest extends PHPUnit_Framework_TestCase
 
         // Process with a Doc Block suppression.
         $content = '<?php '.PHP_EOL.'/* @codingStandardsIgnoreFile */'.PHP_EOL.'//TODO: write some code';
-        $phpcs->processFile('suppressionTest.php', $content);
-
-        $files = $phpcs->getFiles();
-        $file  = $files[1];
+        $file    = $phpcs->processFile('suppressionTest.php', $content);
 
         $warnings    = $file->getWarnings();
         $numWarnings = $file->getWarningCount();

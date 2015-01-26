@@ -8,7 +8,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
@@ -23,7 +23,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @version   Release: @package_version@
  * @link      http://pear.php.net/package/PHP_CodeSniffer
@@ -38,11 +38,12 @@ class PEAR_Tests_ControlStructures_MultiLineConditionUnitTest extends AbstractSn
      * The key of the array should represent the line number and the value
      * should represent the number of errors that should occur on that line.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getErrorList()
     {
         return array(
+                21  => 1,
                 22  => 1,
                 35  => 1,
                 40  => 1,
@@ -51,15 +52,21 @@ class PEAR_Tests_ControlStructures_MultiLineConditionUnitTest extends AbstractSn
                 43  => 1,
                 49  => 1,
                 54  => 1,
+                57  => 1,
                 58  => 1,
                 59  => 1,
                 61  => 1,
+                67  => 1,
+                87  => 1,
                 88  => 1,
                 89  => 1,
                 90  => 1,
                 96  => 2,
+                101 => 1,
                 109 => 2,
                 125 => 1,
+                145 => 1,
+                153 => 1,
                );
 
     }//end getErrorList()
@@ -71,7 +78,7 @@ class PEAR_Tests_ControlStructures_MultiLineConditionUnitTest extends AbstractSn
      * The key of the array should represent the line number and the value
      * should represent the number of warnings that should occur on that line.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getWarningList()
     {
@@ -81,5 +88,3 @@ class PEAR_Tests_ControlStructures_MultiLineConditionUnitTest extends AbstractSn
 
 
 }//end class
-
-?>

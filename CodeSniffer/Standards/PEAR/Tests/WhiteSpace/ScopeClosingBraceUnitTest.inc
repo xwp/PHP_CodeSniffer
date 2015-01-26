@@ -27,9 +27,9 @@ class Test2
 public function test2()
 {
     if ($str{0}) {
-        $chr = $str{0};
-    }
-    
+        $chr = $str{0}; }
+
+
     if (!class_exists($class_name)) {
         echo $error;
     }
@@ -88,4 +88,24 @@ switch ($httpResponseCode) {
 switch($i) {
 case 1: {}
 }
-?>
+
+switch ($httpResponseCode) {
+    case 100:
+    case 101:
+    case 102:
+        exit;
+    default:
+    exit;
+}
+
+if ($foo):
+    if ($bar):
+        $foo = 1;
+    elseif ($baz):
+        $foo = 2;
+    endif;
+endif;
+
+if ($foo):
+elseif ($baz): $foo = 2;
+endif;

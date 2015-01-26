@@ -24,6 +24,9 @@ function myFunction()
 
 }
 
+/**
+ * Doc comment with a white space at the end. 
+ */
 function myFunction2()
 {
     echo 'code here';
@@ -44,6 +47,8 @@ function myFunction2()
 }
 
 // @codingStandardsChangeSetting Squiz.WhiteSpace.SuperfluousWhitespace ignoreBlankLines false
+
+// Уберём из системных свойств все кроме информации об услугах
 
 ?>
 

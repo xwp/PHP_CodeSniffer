@@ -7,7 +7,7 @@
  * @category  PHP
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
@@ -21,7 +21,7 @@
  * @category  PHP
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @version   Release: @package_version@
  * @link      http://pear.php.net/package/PHP_CodeSniffer
@@ -36,28 +36,37 @@ class Squiz_Tests_Functions_MultiLineFunctionDeclarationUnitTest extends Abstrac
      * The key of the array should represent the line number and the value
      * should represent the number of errors that should occur on that line.
      *
-     * @return array(int => int)
+     * @param string $testFile The name of the file being tested.
+     *
+     * @return array<int, int>
      */
-    public function getErrorList()
+    public function getErrorList($testFile='MultiLineFunctionDeclarationUnitTest.inc')
     {
-        return array(
-                2  => 1,
-                3  => 1,
-                4  => 3,
-                5  => 1,
-                7  => 1,
-                11 => 1,
-                12 => 1,
-                13 => 1,
-                16 => 1,
-                33 => 1,
-                36 => 1,
-                43 => 2,
-                48 => 1,
-                81 => 1,
-                82 => 2,
-                88 => 2,
-               );
+        $errors = array(
+                   2   => 1,
+                   3   => 1,
+                   4   => 2,
+                   5   => 1,
+                   7   => 1,
+                   11  => 1,
+                   12  => 1,
+                   13  => 1,
+                   16  => 1,
+                   33  => 1,
+                   36  => 1,
+                   43  => 2,
+                   48  => 1,
+                   81  => 1,
+                   82  => 2,
+                   102 => 2,
+                  );
+
+        // Extra "use" error for PHP files.
+        if ($testFile === 'MultiLineFunctionDeclarationUnitTest.inc') {
+            $errors[88] = 1;
+        }
+
+        return $errors;
 
     }//end getErrorList()
 
@@ -68,7 +77,7 @@ class Squiz_Tests_Functions_MultiLineFunctionDeclarationUnitTest extends Abstrac
      * The key of the array should represent the line number and the value
      * should represent the number of warnings that should occur on that line.
      *
-     * @return array(int => int)
+     * @return array<int, int>
      */
     public function getWarningList()
     {
@@ -78,5 +87,3 @@ class Squiz_Tests_Functions_MultiLineFunctionDeclarationUnitTest extends Abstrac
 
 
 }//end class
-
-?>

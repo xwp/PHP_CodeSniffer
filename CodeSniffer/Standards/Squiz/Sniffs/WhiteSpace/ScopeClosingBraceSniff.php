@@ -8,7 +8,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
@@ -22,7 +22,7 @@
  * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Marc McIntyre <mmcintyre@squiz.net>
- * @copyright 2006-2012 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  * @version   Release: @package_version@
  * @link      http://pear.php.net/package/PHP_CodeSniffer
@@ -85,26 +85,38 @@ class Squiz_Sniffs_WhiteSpace_ScopeClosingBraceSniff implements PHP_CodeSniffer_
         $lastContent = $phpcsFile->findPrevious(array(T_WHITESPACE), ($scopeEnd - 1), $scopeStart, true);
         if ($tokens[$lastContent]['line'] === $tokens[$scopeEnd]['line']) {
             $error = 'Closing brace must be on a line by itself';
-            $phpcsFile->addError($error, $scopeEnd, 'ContentBefore');
+            $fix   = $phpcsFile->addFixableError($error, $scopeEnd, 'ContentBefore');
+            if ($fix === true) {
+                $phpcsFile->fixer->addNewlineBefore($scopeEnd);
+            }
+
             return;
         }
 
         // Check now that the closing brace is lined up correctly.
         $braceIndent = $tokens[$scopeEnd]['column'];
-        if (in_array($tokens[$stackPtr]['code'], array(T_CASE, T_DEFAULT)) === false) {
-            if ($braceIndent !== $startColumn) {
-                $error = 'Closing brace indented incorrectly; expected %s spaces, found %s';
-                $data  = array(
-                          ($startColumn - 1),
-                          ($braceIndent - 1),
-                         );
-                $phpcsFile->addError($error, $scopeEnd, 'Indent', $data);
+        if ($tokens[$stackPtr]['code'] !== T_DEFAULT
+            && $tokens[$stackPtr]['code'] !== T_CASE
+            && $braceIndent !== $startColumn
+        ) {
+            $error = 'Closing brace indented incorrectly; expected %s spaces, found %s';
+            $data  = array(
+                      ($startColumn - 1),
+                      ($braceIndent - 1),
+                     );
+
+            $fix = $phpcsFile->addFixableError($error, $scopeEnd, 'Indent', $data);
+            if ($fix === true) {
+                $diff = ($startColumn - $braceIndent);
+                if ($diff > 0) {
+                    $phpcsFile->fixer->addContentBefore($scopeEnd, str_repeat(' ', $diff));
+                } else {
+                    $phpcsFile->fixer->substrToken(($scopeEnd - 1), 0, $diff);
+                }
             }
-        }
+        }//end if
 
     }//end process()
 
 
 }//end class
-
-?>
