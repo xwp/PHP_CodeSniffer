@@ -1,40 +1,60 @@
 <?php
 
-// Good.
-function myFunction() {
+// Brace should be on new line.
+function myFunction() 
+{
 }
 
-// Brace should be on same line.
+// Good.
 function myFunction()
 {
 }
 
 // Too many spaces.
-function myFunction()   {
+function myFunction()   
+{
 }
 
-// Uses tab.
-function myFunction()	{
+// Too many newlines.
+function myFunction()
+{
 }
 
+// Space before brace.
+function myFunction()
+{
+}
 
 class myClass()
 {
-    // Good.
-    function myFunction() {
+    // Brace should be on new line.
+    function myFunction() 
+    {
     }
     
-    // Brace should be on same line.
+    // Good.
+    function myFunction()
+    {
+    }
+
+    // No aligned correctly.
+    function myFunction()
+    {
+}
+    
+    // Too many spaces.
+    function myFunction()   
+    {
+    }
+    
+    // Too many newlines.
     function myFunction()
     {
     }
     
-    // Too many spaces.
-    function myFunction()   {
-    }
-    
-    // Uses tab.
-    function myFunction()	{
+    // Space before brace.
+    function myFunction()
+    {
     }
 }
 
@@ -42,12 +62,15 @@ class myClass()
 
 /* Multi-line declarations */
 
-// Good.
+
+
+// Brace should be on new line.
 function myFunction($variable1, $variable2,
-    $variable3, $variable4) {
+    $variable3, $variable4) 
+{
 }
 
-// Brace should be on same line.
+// Good.
 function myFunction($variable1, $variable2,
     $variable3, $variable4)
 {
@@ -55,36 +78,58 @@ function myFunction($variable1, $variable2,
 
 // Too many spaces.
 function myFunction($variable1, $variable2,
-    $variable3, $variable4)   {
+    $variable3, $variable4)   
+{
 }
 
-// Uses tab.
+// Too many newlines.
 function myFunction($variable1, $variable2,
-    $variable3, $variable4)	{
+    $variable3, $variable4)
+{
 }
 
+// Space before brace.
+function myFunction($variable1, $variable2,
+    $variable3, $variable4)
+{
+}
 
 class myClass()
 {
-    // Good.
+    // Brace should be on new line.
     function myFunction($variable1, $variable2,
-        $variable3, $variable4) {
-    }
-    
-    // Brace should be on same line.
-    function myFunction($variable1, $variable2,
-        $variable3, $variable4)
+    $variable3, $variable4) 
     {
     }
     
+    // Good.
+    function myFunction($variable1, $variable2,
+    $variable3, $variable4)
+    {
+    }
+
+    // No aligned correctly.
+    function myFunction($variable1, $variable2,
+    $variable3, $variable4)
+    {
+}
+    
     // Too many spaces.
     function myFunction($variable1, $variable2,
-        $variable3, $variable4)   {
+    $variable3, $variable4)   
+    {
     }
     
-    // Uses tab.
+    // Too many newlines.
     function myFunction($variable1, $variable2,
-        $variable3, $variable4)	{
+    $variable3, $variable4)
+    {
+    }
+    
+    // Space before brace.
+    function myFunction($variable1, $variable2,
+    $variable3, $variable4)
+    {
     }
 }
 
@@ -111,7 +156,8 @@ function myFunction(
                     $arg4,
                     $arg5,
                     $arg6
-                    ) {
+                    ) 
+{
 }
 
 function myFunction() {}
