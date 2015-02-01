@@ -125,25 +125,23 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
      * @return array The updated CLI values.
      * @see getCommandLineValues()
      */
-    public function processUnknownArgument($arg, $pos, $values)
+    public function processUnknownArgument($arg, $pos)
     {
         if ( $arg === '--git' ) {
-            $values['vcsType'] = 'git';
+            $this->values['vcsType'] = 'git';
         }
         else if ( $arg === '--svn' ) {
-            $values['vcsType'] = 'svn';
+            $this->values['vcsType'] = 'svn';
         }
         else if ( $arg == '--debug' ) {
-            $values['debug'] = true;
+            $this->values['debug'] = true;
         }
         else if ( $arg == '--local' ) {
-            $values['direct-call'] = true;
+            $this->values['direct-call'] = true;
         }
         else {
-            $values['vcsArgs'][] = $arg;
+            $this->values['vcsArgs'][] = $arg;
         }
-        return $values;
-
     }//end processUnknownArgument()
 
     /**
@@ -158,6 +156,9 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
     {
         if (empty($values) === true) {
             $values = parent::getCommandLineValues();
+        } else {
+            $values       = array_merge($this->getDefaults(), $values);
+            $this->values = $values;
         }
 
         $this->debug = $values['debug'];
@@ -253,12 +254,15 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
         }
 
         $values['standard'] = $this->validateStandard($values['standard']);
-        if (PHP_CodeSniffer::isInstalledStandard($values['standard']) === false) {
-            // They didn't select a valid coding standard, so help them
-            // out by letting them know which standards are installed.
-            printf( 'ERROR: the "%s" coding standard is not installed.' . PHP_EOL, $values['standard'] );
-            $this->printInstalledStandards();
-            exit(2);
+
+        foreach ( $values['standard'] as $standard ) {
+            if (PHP_CodeSniffer::isInstalledStandard($standard) === false) {
+                // They didn't select a valid coding standard, so help them
+                // out by letting them know which standards are installed.
+                printf( 'ERROR: the "%s" coding standard is not installed.' . PHP_EOL, $standard );
+                $this->printInstalledStandards();
+                exit(2);
+            }
         }
  
         $phpcs = new PHP_CodeSniffer(
