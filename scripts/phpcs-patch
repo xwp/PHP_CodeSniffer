@@ -240,6 +240,8 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             }
             elseif ( $values['vcsType'] == 'svn' ) {
                 $pattern = '/^.{4}/';
+            } else {
+                continue;
             }
             $paths[] = trim( 
                 preg_replace( 
@@ -387,6 +389,10 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
      */
     public function process_diff() {
 
+        if ( ! empty( $this->changed_lines ) ) {
+            return $this->changed_lines;
+        }
+
         $values = parent::getCommandLineValues();
         $vcs = $values['vcsType'];
 
@@ -417,6 +423,8 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
                 'svn diff %s --no-diff-deleted --diff-cmd diff -x -U0', 
                 implode( ' ', $args )
                 );
+        } else {
+            return array();
         }
 
         $diffs = $this->executeCommand( $command, true );
@@ -451,133 +459,33 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             $scope_start -= 1;
         }
 
+        $this->changed_lines = $files;
         return $files;
-
     }
 
-
     /**
-     * Prints out the usage information for this script.
+     * Called by the report class before parsing errors/warning
+     * so we can eliminate irrelevant messages that affects non-changed files
      *
-     * @return void
+     * @param $report
+     *
+     * @return bool
      */
-    public function printUsage()
-    {
-        parent::printUsage();
-
-        // svn look:
-        // -r [--revision] ARG      : specify revision number ARG
-        // -t [--transaction] ARG   : specify transaction name ARG
-//        Transaction ID only makes sense for transactions that are not yet
-//        committed, i.e. during commit - when files are already on the server
-//        side, but not in repository yet.
-//
-//            So, this transaction ID only valid when pre-commit hook is called, after
-//        commit is completed transaction is deleted and instead new revision in
-//        repository appears.
-
-        echo PHP_EOL;
-        echo '    Each additional argument is passed to the current repo\'s VCS tool'.PHP_EOL;
-        echo '    The report is printed on standard output,'.PHP_EOL;
-        echo '    however Subversion displays only standard error to the user, so in a'.PHP_EOL;
-        echo '    pre-commit hook, this script should be invoked as follows:'.PHP_EOL;
-        echo PHP_EOL;
-        echo '    '.basename($_SERVER['argv'][0]).' ... "$REPOS" -t "$TXN" >&2 || exit 1'.PHP_EOL;
-
-    }//end printUsage()
-
-    /**
-     * Prints the error report for the run.
-     *
-     * Note that this function may actually print multiple reports
-     * as the user may have specified a number of output formats.
-     *
-     * @param PHP_CodeSniffer $phpcs       The PHP_CodeSniffer object containing
-     *                                     the errors.
-     * @param array           $reports     A list of reports to print.
-     * @param bool            $showSources TRUE if report should show error sources
-     *                                     (not used by all reports).
-     * @param string          $reportFile  A default file to log report output to.
-     * @param int             $reportWidth How wide the screen reports should be.
-     *
-     * @return int The number of error and warning messages shown.
-     */
-    public function printErrorReport(
-        PHP_CodeSniffer $phpcs,
-        $reports,
-        $showSources,
-        $reportFile,
-        $reportWidth
-    ) {
-        $reporting       = new PHP_CodeSniffer_Reporting();
-        $filesViolations = $phpcs->getFilesErrors();
-
+    public function adjustReport( $report ) {
         $changed_lines = $this->process_diff();
-        foreach ( $filesViolations as $file => $issues ) {
-            if ( empty( $changed_lines[$file] ) ) {
-                $this->debug && printf( 'File %s didnt change in specified range.', $file );
-            }
-            else {
-                foreach ( array( 'warnings', 'errors' ) as $type ) {
-                    $count = 0;
-                    foreach ( $issues[$type] as $line => $issue ) {
-                        if ( ! in_array( $line, $changed_lines[$file] ) ) {
-                            unset( $filesViolations[$file][$type][$line] );
-                        } else {
-                            $count += count($issue);
-                        }
-                    }
-                    $filesViolations[$file]['num' . ucfirst($type)] = $count;
-                    $count = 0;
-                }
+
+        if ( empty( $changed_lines[ $report['filename'] ] ) ) {
+            return false;
+        }
+
+        foreach ( $report['messages'] as $line => $issues ) {
+            if ( ! in_array( $line, $changed_lines[ $report['filename'] ] ) ) {
+                unset( $report['messages'][$line] );
             }
         }
 
-        if (empty($reports) === true) {
-            $reports['full'] = $reportFile;
-        }
-
-        $errors   = 0;
-        $toScreen = false;
-
-        foreach ($reports as $report => $output) {
-            if ($output === null) {
-                $output = $reportFile;
-            }
-
-            if ($reportFile === null) {
-                $toScreen = true;
-            }
-
-            // We don't add errors here because the number of
-            // errors reported by each report type will always be the
-            // same, so we really just need 1 number.
-            $errors = $reporting->printReport(
-                $report,
-                $filesViolations,
-                $showSources,
-                $output,
-                $reportWidth
-            );
-        }
-
-        // Only print PHP_Timer output if no reports were
-        // printed to the screen so we don't put additional output
-        // in something like an XML report. If we are printing to screen,
-        // the report types would have already worked out who should
-        // print the timer info.
-        if ($toScreen === false
-            && PHP_CODESNIFFER_INTERACTIVE === false
-            && class_exists('PHP_Timer', false) === true
-        ) {
-            echo PHP_Timer::resourceUsage().PHP_EOL.PHP_EOL;
-        }
-
-        // They should all return the same value, so it
-        // doesn't matter which return value we end up using.
-        return $errors;
-
-    }//end printErrorReport()
+        return $report;
+    }
 
     function executeCommand( $command, $split = false ) {
         $handle = popen( sprintf(
