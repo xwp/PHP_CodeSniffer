@@ -478,11 +478,30 @@ class PHP_CodeSniffer_Patch_CLI extends PHP_CodeSniffer_CLI
             return false;
         }
 
+        $errors = 0;
+        $warnings = 0;
+        $fixable = 0;
         foreach ( $report['messages'] as $line => $issues ) {
             if ( ! in_array( $line, $changed_lines[ $report['filename'] ] ) ) {
                 unset( $report['messages'][$line] );
+                continue;
+            }
+            foreach ( $issues as $col => $messages ) {
+                foreach ( $messages as $message ) {
+                    if ( 'ERROR' === $message['type'] ) {
+                        $errors++;
+                    } else {
+                        $warnings++;
+                    }
+                    if ( true === $message['fixable'] ) {
+                        $fixable++;
+                    }
+                }
             }
         }
+        $report['errors'] = $errors;
+        $report['warnings'] = $warnings;
+        $report['fixable'] = $fixable;
 
         return $report;
     }
