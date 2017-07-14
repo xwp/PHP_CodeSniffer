@@ -1074,6 +1074,19 @@ class PHP_CodeSniffer_File
             $this->_fixableCount++;
         }
 
+        if ( getenv( 'SNIFF_CODE_LOG' ) ) {
+            file_put_contents(
+                getenv( 'SNIFF_CODE_LOG' ),
+                join( "\t", array(
+                    $sniffCode,
+                    'error',
+                    $fixable ? 'true' : 'false',
+                    $severity,
+                ) ) . PHP_EOL,
+                FILE_APPEND
+            );
+        }
+
         if ($this->_recordErrors === false) {
             if (isset($this->_errors[$line]) === false) {
                 $this->_errors[$line] = 0;
@@ -1215,6 +1228,19 @@ class PHP_CodeSniffer_File
                 return false;
             }
         }//end foreach
+
+        if ( getenv( 'SNIFF_CODE_LOG' ) ) {
+            file_put_contents(
+                getenv( 'SNIFF_CODE_LOG' ),
+                join( "\t", array(
+                    $sniffCode,
+                    'warning',
+                    $fixable ? 'true' : 'false',
+                    $severity,
+                ) ) . PHP_EOL,
+                FILE_APPEND
+            );
+        }
 
         $this->_warningCount++;
         if ($fixable === true) {
